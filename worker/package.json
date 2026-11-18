@@ -1,0 +1,16 @@
+{
+  "name": "@launchdock/worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LaunchDock build worker. Linux workers build Android; macOS workers build iOS (and Android).",
+  "bin": {
+    "launchdock-worker": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

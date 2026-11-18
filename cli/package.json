@@ -1,0 +1,16 @@
+{
+  "name": "launchdock-cli",
+  "version": "1.0.0",
+  "description": "CLI for LaunchDock — build, submit and ship OTA updates for iOS and Android apps.",
+  "type": "module",
+  "bin": {
+    "launchdock": "bin/launchdock.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,58 @@
+﻿services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: launchdock
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-launchdock}
+      POSTGRES_DB: launchdock
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U launchdock -d launchdock"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  server:
+    build:
+      context: .
+      dockerfile: docker/server.Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://launchdock:${POSTGRES_PASSWORD:-launchdock}@db:5432/launchdock
+      NODE_ENV: production
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  android-worker:
+    build:
+      context: .
+      dockerfile: docker/android-worker.Dockerfile
+      args:
+        INSTALL_FLUTTER: "false"
+    restart: unless-stopped
+    environment:
+      LAUNCHDOCK_URL: http://server:8080
+      WORKER_TOKEN: ${WORKER_TOKEN}
+      WORKER_ID: android-docker-1
+    volumes:
+      - gradle-cache:/cache
+    depends_on:
+      - server
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+
+volumes:
+  db:
+  storage:
+  gradle-cache:

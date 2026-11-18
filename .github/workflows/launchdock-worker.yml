@@ -1,0 +1,46 @@
+# On-demand LaunchDock worker on GitHub-hosted runners.
+# The server triggers this (GITHUB_DISPATCH_* in .env) whenever an iOS job is queued.
+# The runner drains the queue, then exits — you only pay for minutes used.
+# Repo secrets required: LAUNCHDOCK_URL, LAUNCHDOCK_WORKER_TOKEN
+name: LaunchDock worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "ios or android"
+        default: ios
+
+concurrency:
+  group: launchdock-worker-${{ inputs.platform }}
+  cancel-in-progress: false
+
+jobs:
+  work:
+    runs-on: ${{ inputs.platform == 'android' && 'ubuntu-latest' || 'macos-15' }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: worker
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Select Xcode
+        if: inputs.platform != 'android'
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app || true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Run worker until the queue is empty
+        env:
+          LAUNCHDOCK_URL: ${{ secrets.LAUNCHDOCK_URL }}
+          WORKER_TOKEN: ${{ secrets.LAUNCHDOCK_WORKER_TOKEN }}
+          WORKER_ID: gha-${{ inputs.platform }}-${{ github.run_id }}
+          PLATFORMS: ${{ inputs.platform }}
+        run: node worker/src/index.js --drain

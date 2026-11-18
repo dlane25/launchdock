@@ -1,0 +1,18 @@
+{
+  "name": "launchdock",
+  "private": true,
+  "version": "1.0.0",
+  "description": "LaunchDock by 4ARO \u2014 self-hosted build, submit and OTA-update platform for iOS and Android apps (an Expo EAS alternative).",
+  "workspaces": [
+    "server",
+    "worker",
+    "cli"
+  ],
+  "scripts": {
+    "server": "npm --workspace server run start",
+    "worker": "npm --workspace worker run start"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
